@@ -29,7 +29,7 @@ export default function Trust() {
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative overflow-hidden">
         <div className="marquee-track">
           {items.map((p, i) => (
             <div

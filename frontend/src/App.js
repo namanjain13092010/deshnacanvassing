@@ -18,9 +18,15 @@ function Home() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!loaded) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "auto";
-    return () => { document.body.style.overflow = "auto"; };
+    if (!loaded) {
+      document.body.style.overflow = "hidden";
+    } else {
+      // restore default — DO NOT set to "auto", as any explicit overflow
+      // value on body creates a scroll context that breaks `position: sticky`
+      // on descendants.
+      document.body.style.removeProperty("overflow");
+    }
+    return () => { document.body.style.removeProperty("overflow"); };
   }, [loaded]);
 
   return (

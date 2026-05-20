@@ -30,7 +30,6 @@ body {
     color: var(--cream);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
 }
 
 ::selection {
@@ -323,6 +322,16 @@ body {
 /* --- Loader fade out --- */
 @keyframes loaderFadeOut {
     to { opacity: 0; visibility: hidden; }
+}
+
+/* --- ProductCinema slide entrance --- */
+@keyframes slideFadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes stageFadeIn {
+    0% { opacity: 0; transform: scale(0.94); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 /* --- Logo emerge --- */

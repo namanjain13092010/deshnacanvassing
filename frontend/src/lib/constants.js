@@ -22,7 +22,7 @@ export const PRODUCTS = [
     name: "Atta & Flour",
     desc: "Chakki-fresh wheat atta, maida, sooji and millet flours packed for retail distribution.",
     image:
-      "https://images.unsplash.com/photo-1568827999250-3f6afff96e66?w=1200&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200&auto=format&fit=crop&q=80",
     accent: "Mill",
   },
   {
@@ -46,7 +46,7 @@ export const PRODUCTS = [
     name: "Pulses & Dal",
     desc: "Toor, urad, moong, chana — cleaned, polished, and graded for wholesale.",
     image:
-      "https://images.unsplash.com/photo-1599909533730-f50e8c69ddee?w=1200&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1604908554027-04298a4ed52f?w=1200&auto=format&fit=crop&q=80",
     accent: "Lentils",
   },
   {

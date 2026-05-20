@@ -4,5 +4,10 @@
     background: var(--bg-deep);
     color: var(--cream);
     position: relative;
-    overflow-x: hidden;
+}
+
+/* Use overflow-clip on html instead of overflow-hidden on body / .App
+   so that position: sticky continues to work on descendants. */
+html {
+    overflow-x: clip;
 }
