@@ -2,7 +2,7 @@ export const LOGO_URL =
   "https://customer-assets.emergentagent.com/job_5f0934b2-aedf-4d00-b66d-619169bf37a3/artifacts/zuoqlm56_ChatGPT%20Image%20May%2020%2C%202026%2C%2008_00_25%20PM.png";
 
 export const FOUNDER_PHOTO =
-  "https://images.unsplash.com/photo-1556157382-97eda2d62296?w=900&auto=format&fit=crop&q=80";
+  "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/u2tyshdo_WhatsApp%20Image%202026-05-20%20at%208.05.03%20PM.jpeg";
 
 export const PHONES = ["9901112555", "7848888555"];
 export const WHATSAPP_NUMBER = "919901112555";

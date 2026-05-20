@@ -5,6 +5,8 @@ import { ArrowDown, MoveRight } from "lucide-react";
 
 export default function Hero() {
   const parallaxRef = useRef(null);
+  const logoRef = useRef(null);
+  const heroRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -14,12 +16,34 @@ export default function Hero() {
       parallaxRef.current.style.opacity = `${Math.max(0, 1 - y / 700)}`;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+
+    const hero = heroRef.current;
+    const onMove = (e) => {
+      if (!hero || !logoRef.current) return;
+      const rect = hero.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      logoRef.current.style.transform = `perspective(1400px) rotateY(${x * 14}deg) rotateX(${-y * 10}deg) translateZ(0)`;
+    };
+    const onLeave = () => {
+      if (logoRef.current) {
+        logoRef.current.style.transform =
+          "perspective(1400px) rotateY(0) rotateX(0)";
+      }
+    };
+    hero?.addEventListener("mousemove", onMove);
+    hero?.addEventListener("mouseleave", onLeave);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      hero?.removeEventListener("mousemove", onMove);
+      hero?.removeEventListener("mouseleave", onLeave);
+    };
   }, []);
 
   return (
     <section
       id="home"
+      ref={heroRef}
       data-testid="hero-section"
       className="relative min-h-screen flex items-center justify-center overflow-hidden grain-overlay"
       style={{
@@ -29,7 +53,6 @@ export default function Hero() {
     >
       <ParticlesBg density={90} />
 
-      {/* market silhouette / depth layer */}
       <div
         className="absolute inset-0 opacity-25"
         style={{
@@ -59,16 +82,25 @@ export default function Hero() {
           </span>
         </div>
 
-        <img
-          src={LOGO_URL}
-          alt="Deshna Canvassing"
-          className="mx-auto mb-10 float-y"
-          style={{
-            width: "min(520px, 76vw)",
-            filter:
-              "drop-shadow(0 0 30px rgba(245,209,140,0.45)) drop-shadow(0 0 80px rgba(212,161,73,0.25))",
-          }}
-        />
+        <div
+          style={{ perspective: "1400px", transformStyle: "preserve-3d" }}
+          className="mb-10 inline-block"
+        >
+          <img
+            ref={logoRef}
+            src={LOGO_URL}
+            alt="Deshna Canvassing"
+            className="mx-auto float-y"
+            style={{
+              width: "min(520px, 76vw)",
+              filter:
+                "drop-shadow(0 0 30px rgba(245,209,140,0.45)) drop-shadow(0 0 80px rgba(212,161,73,0.25))",
+              transition: "transform 0.7s cubic-bezier(0.2,0.8,0.2,1)",
+              transformStyle: "preserve-3d",
+            }}
+            draggable={false}
+          />
+        </div>
 
         <h1
           className="heading-display text-5xl sm:text-6xl lg:text-7xl mb-6"

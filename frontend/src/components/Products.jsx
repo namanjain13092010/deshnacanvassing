@@ -65,6 +65,15 @@ function ProductCard({ p, idx }) {
               "linear-gradient(180deg, transparent 40%, rgba(10,8,6,0.85) 100%)",
           }}
         />
+        {/* floor reflection */}
+        <div
+          className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-[70%] h-3 rounded-[50%] pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse, rgba(245,209,140,0.45) 0%, transparent 70%)",
+            filter: "blur(10px)",
+          }}
+        />
         <div className="absolute top-4 left-4 text-[10px] tracking-[0.28em] uppercase text-[#f5d18c] px-3 py-1 rounded-full"
              style={{ background: "rgba(10,8,6,0.6)", border: "1px solid rgba(245,209,140,0.3)" }}>
           {String(idx + 1).padStart(2, "0")} · {p.accent}

@@ -6,6 +6,7 @@ import CinematicLoader from "@/components/CinematicLoader";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Highlights from "@/components/Highlights";
+import ProductCinema from "@/components/ProductCinema";
 import Products from "@/components/Products";
 import Story from "@/components/Story";
 import Founder from "@/components/Founder";
@@ -30,6 +31,7 @@ function Home() {
       <main>
         <Hero />
         <Highlights />
+        <ProductCinema />
         <Products />
         <Story />
         <Founder />
