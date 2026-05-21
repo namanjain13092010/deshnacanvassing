@@ -39,8 +39,8 @@ export default function ProductCinema() {
 
   return (
     <section
+      id="products"
       ref={wrapRef}
-      id="cinema"
       data-testid="product-cinema"
       className="relative grain-overlay"
       style={{

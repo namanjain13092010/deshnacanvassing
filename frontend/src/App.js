@@ -7,7 +7,6 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Highlights from "@/components/Highlights";
 import ProductCinema from "@/components/ProductCinema";
-import Products from "@/components/Products";
 import Story from "@/components/Story";
 import Founder from "@/components/Founder";
 import Trust from "@/components/Trust";
@@ -38,7 +37,6 @@ function Home() {
         <Hero />
         <Highlights />
         <ProductCinema />
-        <Products />
         <Story />
         <Founder />
         <Trust />
