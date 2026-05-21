@@ -118,7 +118,7 @@ export default function Products() {
           </div>
         </div>
 
-        <div className="reveal-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="reveal-stagger grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 lg:gap-8">
           {PRODUCTS.map((p, i) => (
             <ProductCard key={p.id} p={p} idx={i} />
           ))}

@@ -44,7 +44,7 @@ export default function ProductCinema() {
       data-testid="product-cinema"
       className="relative grain-overlay"
       style={{
-        height: `${PRODUCTS.length * 90}vh`,
+        height: `${PRODUCTS.length * 70}vh`,
         background:
           "radial-gradient(ellipse at 50% 30%, #1a130b 0%, #0a0806 60%, #000 100%)",
       }}
