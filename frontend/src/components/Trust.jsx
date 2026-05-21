@@ -19,12 +19,12 @@ export default function Trust() {
           <div>
             <div className="eyebrow mb-2">— Brands We Distribute</div>
             <h3 className="heading-display text-3xl sm:text-4xl text-[#f0e6d2]">
-              Trusted by India's most recognised <span className="text-gold-gradient italic">FMCG houses</span>.
+              The flagship brands that trust <span className="text-gold-gradient italic">Deshna's network</span>.
             </h3>
           </div>
           <p className="text-sm text-[#8a7c62] max-w-md">
-            Long-standing tie-ups across rice, oils, atta, pulses, detergents and
-            daily essentials.
+            Long-standing tie-ups across rice, wheat, pulses, dal, and daily
+            cooking essentials.
           </p>
         </div>
       </div>

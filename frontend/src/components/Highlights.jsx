@@ -26,8 +26,9 @@ export default function Highlights() {
           </div>
           <p className="lg:col-span-5 text-[#c2b69a] text-base sm:text-lg leading-relaxed">
             Deshna Canvassing is the bridge between manufacturers and the
-            shop-by-shop network that feeds Karnataka's kitchens — rice, atta,
-            edible oils, pulses, detergents, and the everyday essentials of FMCG.
+            shop-by-shop network that feeds Karnataka's kitchens — premium rice,
+            stone-milled wheat, sortex-graded pulses and daily-cooking essentials
+            from trusted Indian brands.
           </p>
         </div>
 

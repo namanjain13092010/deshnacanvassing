@@ -120,7 +120,7 @@ export default function ProductCinema() {
           </div>
 
           {/* product stage column - only active slide rendered */}
-          <div className="lg:col-span-7 relative h-[60vh] sm:h-[65vh]">
+          <div className="lg:col-span-7 relative h-[65vh] sm:h-[70vh]">
             {PRODUCTS.map((p, i) => {
               const isActive = i === active;
               if (!isActive) return null;
@@ -141,8 +141,10 @@ export default function ProductCinema() {
                   />
                   {/* product image */}
                   <div
-                    className="relative h-full rounded-3xl overflow-hidden"
+                    className="relative h-full rounded-3xl overflow-hidden flex items-center justify-center"
                     style={{
+                      background:
+                        "radial-gradient(ellipse at 50% 50%, rgba(31,24,18,0.9) 0%, rgba(10,8,6,0.95) 100%)",
                       boxShadow:
                         "0 60px 120px -20px rgba(0,0,0,0.7), 0 0 80px -10px rgba(212,161,73,0.3)",
                       border: "1px solid rgba(212,161,73,0.25)",
@@ -151,16 +153,9 @@ export default function ProductCinema() {
                     <img
                       src={p.image}
                       alt={p.name}
-                      className="w-full h-full object-cover"
-                      style={{ filter: "saturate(1.05) contrast(1.05)" }}
+                      className="max-w-full max-h-full object-contain"
+                      style={{ filter: "saturate(1.05) contrast(1.02)" }}
                       draggable={false}
-                    />
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, transparent 55%, rgba(10,8,6,0.55) 100%)",
-                      }}
                     />
                   </div>
                   {/* floor reflection */}

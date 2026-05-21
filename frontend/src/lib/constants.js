@@ -10,63 +10,61 @@ export const ADDRESS_LINES = ["Industrial Area", "Indi Road", "Vijayapura", "586
 
 export const PRODUCTS = [
   {
-    id: "rice",
-    name: "Premium Rice",
-    desc: "Sona Masoori, Basmati, Idli & Steam — sourced from trusted mills across South India.",
+    id: "rmd-rice",
+    name: "RMD Kolam Rice",
+    desc: "Lachkari JSR Wada Kolam — pure old rice, marriage-grade quality, packed in 26kg sacks for premium retail.",
     image:
-      "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1200&auto=format&fit=crop&q=80",
-    accent: "Grain",
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/575n9agh_WhatsApp%20Image%202026-05-21%20at%2011.31.58%20AM.jpeg",
+    accent: "Rice",
   },
   {
-    id: "flour",
-    name: "Atta & Flour",
-    desc: "Chakki-fresh wheat atta, maida, sooji and millet flours packed for retail distribution.",
+    id: "bhaliya-wheat",
+    name: "Bhaliya Wheat",
+    desc: "Khambhat Special Bhaliya wheat — best-sortex, royal-grade grain straight from golden fields, in 30kg sacks.",
     image:
-      "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200&auto=format&fit=crop&q=80",
-    accent: "Mill",
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/3z79zlhg_WhatsApp%20Image%202026-05-21%20at%2011.31.58%20AM%20%282%29.jpeg",
+    accent: "Wheat",
   },
   {
-    id: "oil",
-    name: "Edible Oils",
-    desc: "Sunflower, groundnut, palmolein and refined oils — sealed tins and pouches.",
+    id: "jains-toor",
+    name: "Jain's Silver Toor Dal",
+    desc: "Premium quality Toor Dal by Jinendra Industries — clean, sortex-graded, nourishment from nature's heart.",
     image:
-      "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=1200&auto=format&fit=crop&q=80",
-    accent: "Refined",
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/e4fehquu_WhatsApp%20Image%202026-05-21%20at%2011.32.00%20AM.jpeg",
+    accent: "Toor Dal",
   },
   {
-    id: "detergent",
-    name: "Detergent & Soap",
-    desc: "Laundry bars, washing powders and personal care soaps from leading FMCG brands.",
+    id: "deshna-bullet",
+    name: "Deshna Bullet",
+    desc: "Super Bullet Urid Gota & Dal — 100% sortex, nutrient-rich, traditional taste — Deshna's own house brand.",
     image:
-      "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=1200&auto=format&fit=crop&q=80",
-    accent: "FMCG",
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/y9eowivn_WhatsApp%20Image%202026-05-21%20at%2011.31.59%20AM.jpeg",
+    accent: "Urid Dal",
   },
   {
-    id: "pulses",
-    name: "Pulses & Dal",
-    desc: "Toor, urad, moong, chana — cleaned, polished, and graded for wholesale.",
+    id: "cow-futana",
+    name: "Cow Brand Futana",
+    desc: "Premium Puffed Gram Dal by Kohinoor Fried Gram Mill — daily cooking essential, crunchy, wholesome snacking.",
     image:
-      "https://images.unsplash.com/photo-1604908554027-04298a4ed52f?w=1200&auto=format&fit=crop&q=80",
-    accent: "Lentils",
-  },
-  {
-    id: "grocery",
-    name: "Daily Essentials",
-    desc: "Spices, salt, sugar, snacks and packaged staples for full-basket retail supply.",
-    image:
-      "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&auto=format&fit=crop&q=80",
-    accent: "Retail",
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/r6xnfo0b_WhatsApp%20Image%202026-05-21%20at%2011.31.58%20AM%20%281%29.jpeg",
+    accent: "Futana",
   },
 ];
 
 export const STATS = [
   { value: "15+", label: "Years of Trust" },
   { value: "200+", label: "Retail Partners" },
-  { value: "40+", label: "Brand Tie-ups" },
+  { value: "5", label: "Flagship Brands" },
   { value: "12", label: "Districts Served" },
 ];
 
 export const PARTNERS = [
-  "ITC", "Adani Wilmar", "Tata Consumer", "Patanjali", "Marico",
-  "Cargill", "Britannia", "Parle", "Fortune", "Dabur", "Hindustan Unilever",
+  "Jain's Silver",
+  "Jinendra Industries",
+  "Deshna Bullet",
+  "Bhaliya Wheat",
+  "Khambhat Special",
+  "Cow Brand Daliya",
+  "Kohinoor Fried Gram Mill",
+  "RMD Kolam Rice",
 ];

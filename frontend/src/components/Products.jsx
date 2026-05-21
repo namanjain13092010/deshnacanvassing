@@ -42,28 +42,23 @@ function ProductCard({ p, idx }) {
       className="relative glass-card glass-card-hover rounded-2xl overflow-hidden group cursor-pointer"
       style={{ transformStyle: "preserve-3d", transition: "transform 0.4s cubic-bezier(0.2,0.8,0.2,1)" }}
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-square overflow-hidden flex items-center justify-center"
+        style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(31,24,18,0.9) 0%, rgba(10,8,6,0.95) 100%)" }}
+      >
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 50% 60%, rgba(212,161,73,0.18) 0%, transparent 70%)",
+              "radial-gradient(circle at 50% 60%, rgba(212,161,73,0.15) 0%, transparent 70%)",
           }}
         />
         <img
           data-img
           src={p.image}
           alt={p.name}
-          className="w-full h-full object-cover transition-transform duration-700"
-          style={{ filter: "saturate(1.05) contrast(1.05)" }}
+          className="max-w-[88%] max-h-[88%] object-contain transition-transform duration-700"
+          style={{ filter: "saturate(1.05) contrast(1.02)" }}
           loading="lazy"
-        />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(180deg, transparent 40%, rgba(10,8,6,0.85) 100%)",
-          }}
         />
         {/* floor reflection */}
         <div
