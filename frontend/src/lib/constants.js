@@ -89,12 +89,52 @@ export const PRODUCTS = [
       "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/84xj31ju_WhatsApp%20Image%202026-05-21%20at%2011.31.57%20AM.jpeg",
     accent: "Oil",
   },
+  {
+    id: "surya-kolam",
+    name: "Surya Lachkari Kolam",
+    desc: "Nagdevi's Surya JSR / Lachkari Kolam Rice — premium box-pack, computerised machine cleaning, 25kg pack.",
+    image:
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/4pmayt0t_WhatsApp%20Image%202026-05-21%20at%2011.31.56%20AM.jpeg",
+    accent: "Box Rice",
+  },
+  {
+    id: "prakash-hira",
+    name: "Prakash & Hira",
+    desc: "Prakash Peas Flour and Hira Chana Besan by Poona Pulses Pvt. Ltd. — 50kg sacks for sweets, snacks and daily kitchen use.",
+    image:
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/e3rqtkw9_WhatsApp%20Image%202026-05-21%20at%2011.31.55%20AM%20%281%29.jpeg",
+    accent: "Besan",
+  },
+  {
+    id: "noorani-green",
+    name: "DC Noorani Green",
+    desc: "DC Noorani — Best Jeera Lachkari Premium Kolam Rice in heritage green pack, 26kg — exclusive Deshna SKU.",
+    image:
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/oao3ugto_WhatsApp%20Image%202026-05-21%20at%2011.31.55%20AM.jpeg",
+    accent: "Kolam",
+  },
+  {
+    id: "bismillah-jeera",
+    name: "Bismillah Jeera Kolam",
+    desc: "Old Kolam Premium Rice by Akash Rice Industries — Bismillah Jeera, 26kg pack of aromatic, aged grain.",
+    image:
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/zs5ybl1b_WhatsApp%20Image%202026-05-21%20at%2011.31.54%20AM%20%282%29.jpeg",
+    accent: "Old Rice",
+  },
+  {
+    id: "triple9-pulses",
+    name: "Triple 9 Pulses",
+    desc: "Premium quality 999 Brand Pulses & Food Grains — sortex cleaned and packed with care for every meal.",
+    image:
+      "https://customer-assets.emergentagent.com/job_golden-distribution/artifacts/o6igdi97_WhatsApp%20Image%202026-05-21%20at%2011.31.51%20AM%20%281%29.jpeg",
+    accent: "Pulses",
+  },
 ];
 
 export const STATS = [
   { value: "15+", label: "Years of Trust" },
   { value: "200+", label: "Retail Partners" },
-  { value: "10", label: "Flagship Brands" },
+  { value: "15", label: "Flagship Brands" },
   { value: "12", label: "Districts Served" },
 ];
 
@@ -102,9 +142,14 @@ export const PARTNERS = [
   "DC Noorani",
   "Mehar Basmati",
   "RMD Kolam Rice",
+  "Surya Lachkari",
+  "Bismillah Jeera",
   "Bhaliya Wheat",
   "Khambhat Special",
   "Gitadevi Agro Processing",
+  "Prakash Peas Flour",
+  "Hira Gram Flour",
+  "Poona Pulses",
   "Jain's Silver",
   "Jinendra Industries",
   "Deshna Bullet",
@@ -112,5 +157,7 @@ export const PARTNERS = [
   "RR Group",
   "Cow Brand Daliya",
   "Kohinoor Fried Gram Mill",
+  "Triple 9 Brand",
+  "Akash Rice Industries",
   "Venkat's Freelite",
 ];
