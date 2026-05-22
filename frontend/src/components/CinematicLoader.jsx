@@ -2,17 +2,25 @@ import { useEffect, useRef, useState } from "react";
 import { LOGO_URL } from "../lib/constants";
 
 /**
- * CinematicLoader — Phase 1: thousands of 3D-styled grains rain down with
- * physics. Phase 2: settled grains magnetically MORPH into the exact shape
- * of the "Deshna Canvassing" logo by sampling the logo's alpha pixels.
- * Phase 3: golden shine ignites along the logo, tagline emerges, fade out.
+ * CinematicLoader v3
  *
- * Pure canvas (no Three.js) for fast load + buttery 60fps on mobiles.
+ * Phase A (0-1.4s):  Grains rain down from above. On impact with the floor
+ *                    they BOUNCE — high first bounce, smaller second bounce —
+ *                    then come to rest in a heap.
+ *
+ * Phase B (1.4s-4s): While grains are STILL falling & bouncing, the logo
+ *                    starts forming. Each settled (or near-settled) grain
+ *                    smoothly migrates to its target pixel inside the logo
+ *                    silhouette. Result: the logo physically assembles from
+ *                    the grain storm.
+ *
+ * Phase C (4s-6s):   Logo lock-in — golden glow ignites, the real logo image
+ *                    fades in over the grain silhouette, tagline appears.
  */
 export default function CinematicLoader({ onDone }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(0);
-  const [stage, setStage] = useState("falling"); // falling -> morphing -> revealing -> done
+  const [stage, setStage] = useState("falling");
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -34,15 +42,19 @@ export default function CinematicLoader({ onDone }) {
       { fill: "#e0c891", stroke: "#9a7530", shape: "pulse" },
     ];
 
-    const COUNT = window.innerWidth < 640 ? 900 : 1600;
+    const COUNT = window.innerWidth < 640 ? 900 : 1500;
+    const FLOOR_Y = h - 6 * DPR;
+    const GRAVITY = 0.05 * DPR;
+    const BOUNCE = 0.55; // higher = bouncier (0..1)
+    const FRICTION_X = 0.86;
+
     const particles = [];
 
-    // Logo target sampling — render logo to offscreen canvas at low res,
-    // extract opaque pixel positions, randomly distribute across COUNT particles.
-    let targets = [];
+    // Logo target sampling
+    let targetsReady = false;
     const sampleTargets = (img) => {
       const off = document.createElement("canvas");
-      const tw = Math.min(360, Math.round(window.innerWidth * 0.42));
+      const tw = Math.min(420, Math.round(window.innerWidth * 0.46));
       const th = Math.round(tw * (img.height / img.width));
       off.width = tw;
       off.height = th;
@@ -55,252 +67,194 @@ export default function CinematicLoader({ onDone }) {
         for (let x = 0; x < tw; x += step) {
           const a = data[(y * tw + x) * 4 + 3];
           if (a > 96) {
-            // Map to viewport coords (centered)
             const cx = (window.innerWidth - tw) / 2 + x;
-            const cy = (window.innerHeight - th) / 2 + y - 30; // slight upward bias
+            const cy = (window.innerHeight - th) / 2 + y - 40;
             pts.push([cx * DPR, cy * DPR]);
           }
         }
       }
-      // shuffle
       for (let i = pts.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pts[i], pts[j]] = [pts[j], pts[i]];
       }
-      targets = pts;
-    };
-
-    const groundLevel = h - 8 * DPR;
-    const heapHeight = (x) => {
-      const cx = w / 2;
-      const dx = (x - cx) / (w * 0.45);
-      const bell = Math.max(0, 1 - dx * dx);
-      return groundLevel - bell * h * 0.22 - Math.random() * 4 * DPR;
+      // Assign each particle a target (cycle through if more particles than pts)
+      if (pts.length > 0) {
+        for (let i = 0; i < particles.length; i++) {
+          const t = pts[i % pts.length];
+          particles[i].tx = t[0];
+          particles[i].ty = t[1];
+        }
+        targetsReady = true;
+      }
     };
 
     for (let i = 0; i < COUNT; i++) {
       const type = palette[Math.floor(Math.random() * palette.length)];
       particles.push({
         x: Math.random() * w,
-        y: -Math.random() * h * 1.2,
-        vx: (Math.random() - 0.5) * 0.4 * DPR,
-        vy: (0.6 + Math.random() * 1.4) * DPR,
+        y: -Math.random() * h * 0.8 - 50,
+        vx: (Math.random() - 0.5) * 0.5 * DPR,
+        vy: (1.2 + Math.random() * 1.8) * DPR,  // faster fall = more drama
         rot: Math.random() * Math.PI * 2,
-        vr: (Math.random() - 0.5) * 0.08,
+        vr: (Math.random() - 0.5) * 0.15,
         size: (1.4 + Math.random() * 2.2) * DPR,
         type,
-        settled: false,
-        morphSx: 0, // saved start x for morph easing
-        morphSy: 0,
-        tx: 0, // target x
-        ty: 0, // target y
-        delay: Math.random() * 1800,
+        bounces: 0,
+        rest: false,           // truly motionless
+        tx: 0,
+        ty: 0,
+        morphProgress: 0,      // 0..1, individual morph progress
+        delay: Math.random() * 800,
       });
     }
 
-    // dust embers
+    // floating sparks
     const embers = [];
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 90; i++) {
       embers.push({
         x: Math.random() * w,
         y: Math.random() * h,
         r: (0.4 + Math.random() * 1.2) * DPR,
-        vx: (Math.random() - 0.5) * 0.15 * DPR,
+        vx: (Math.random() - 0.5) * 0.2 * DPR,
         vy: -(0.1 + Math.random() * 0.3) * DPR,
         a: 0.2 + Math.random() * 0.5,
       });
     }
 
-    // load logo for target sampling
+    // Load logo & sample targets
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = () => {
-      sampleTargets(img);
-      // assign each particle a target (cycle through targets if fewer than COUNT)
-      if (targets.length > 0) {
-        for (let i = 0; i < particles.length; i++) {
-          const t = targets[i % targets.length];
-          particles[i].tx = t[0];
-          particles[i].ty = t[1];
-        }
-      }
-    };
+    img.onload = () => sampleTargets(img);
     img.src = LOGO_URL;
 
-    const drawGrain = (p) => {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.fillStyle = p.type.fill;
-      ctx.strokeStyle = p.type.stroke;
-      ctx.lineWidth = 0.4 * DPR;
-      if (p.type.shape === "rice") {
+    const drawShape = (size, shape, fill, stroke) => {
+      ctx.fillStyle = fill;
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 0.4 * DPR;
+      }
+      if (shape === "rice") {
         ctx.beginPath();
-        ctx.ellipse(0, 0, p.size * 1.6, p.size * 0.55, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, size * 1.6, size * 0.55, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
-      } else if (p.type.shape === "wheat") {
+        if (stroke) ctx.stroke();
+      } else if (shape === "wheat") {
         ctx.beginPath();
-        ctx.ellipse(0, 0, p.size * 1.2, p.size * 0.8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, size * 1.2, size * 0.8, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
+        if (stroke) ctx.stroke();
       } else {
         ctx.beginPath();
-        ctx.arc(0, 0, p.size * 0.9, 0, Math.PI * 2);
+        ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
+        if (stroke) ctx.stroke();
       }
-      ctx.restore();
     };
 
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
     const t0 = performance.now();
-    const FALL_DUR = 3000; // grains fall and settle
-    const MORPH_DUR = 1800; // grains migrate to logo positions
-    const REVEAL_DUR = 2400; // logo glow + tagline
-    let phase1Done = false;
-    let phase2Start = 0;
-    let phase2Done = false;
-    let phase3Start = 0;
+    const MORPH_START = 1400;   // logo formation begins WHILE grains still bouncing
+    const MORPH_DUR = 2400;     // duration each particle takes to morph
+    const REVEAL_AT = 4200;     // logo lock-in moment
+    let revealFired = false;
 
     const tick = (now) => {
       const elapsed = now - t0;
 
-      // background
-      const g = ctx.createRadialGradient(w / 2, h * 0.55, 0, w / 2, h * 0.6, w * 0.9);
+      // ── Background gradient (cinematic warm vignette) ──
+      const g = ctx.createRadialGradient(w / 2, h * 0.55, 0, w / 2, h * 0.6, w * 0.95);
       g.addColorStop(0, "#1a130b");
       g.addColorStop(0.4, "#0d0905");
       g.addColorStop(1, "#000000");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
 
-      // warm bottom glow (fades as morph starts)
-      const bottomGlowA = phase1Done ? Math.max(0, 0.22 - (now - phase2Start) / MORPH_DUR * 0.22) : 0.22;
-      const bg = ctx.createRadialGradient(w / 2, h * 0.85, 0, w / 2, h * 0.85, w * 0.5);
-      bg.addColorStop(0, `rgba(212,161,73,${bottomGlowA})`);
-      bg.addColorStop(1, "rgba(212,161,73,0)");
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, w, h);
+      // floor shadow (subtle "ground")
+      const fg = ctx.createLinearGradient(0, h * 0.85, 0, h);
+      fg.addColorStop(0, "rgba(0,0,0,0)");
+      fg.addColorStop(1, "rgba(0,0,0,0.6)");
+      ctx.fillStyle = fg;
+      ctx.fillRect(0, h * 0.85, w, h * 0.15);
 
       // logo center glow (fades in during morph)
-      if (phase1Done) {
-        const localT = Math.min(1, (now - phase2Start) / MORPH_DUR);
-        const centerGlowA = localT * 0.55;
-        const cg = ctx.createRadialGradient(w / 2, h * 0.48, 0, w / 2, h * 0.48, w * 0.4);
-        cg.addColorStop(0, `rgba(245,209,140,${centerGlowA})`);
-        cg.addColorStop(0.5, `rgba(212,161,73,${centerGlowA * 0.45})`);
+      if (elapsed > MORPH_START) {
+        const lt = Math.min(1, (elapsed - MORPH_START) / (REVEAL_AT - MORPH_START));
+        const a = lt * 0.55;
+        const cg = ctx.createRadialGradient(w / 2, h * 0.48, 0, w / 2, h * 0.48, w * 0.45);
+        cg.addColorStop(0, `rgba(245,209,140,${a})`);
+        cg.addColorStop(0.5, `rgba(212,161,73,${a * 0.4})`);
         cg.addColorStop(1, "rgba(212,161,73,0)");
         ctx.fillStyle = cg;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // particles
-      if (!phase1Done) {
-        // FALLING phase: gravity + settle
-        let allSettled = true;
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          if (elapsed < p.delay) {
-            allSettled = false;
-            continue;
-          }
-          if (!p.settled) {
-            p.vy += 0.025 * DPR;
-            p.vx += (Math.random() - 0.5) * 0.02;
-            p.x += p.vx;
-            p.y += p.vy;
-            p.rot += p.vr;
-            const ground = heapHeight(p.x);
-            if (p.y >= ground) {
-              p.y = ground;
-              p.settled = true;
+      // ── Particles ──
+      const morphActive = elapsed > MORPH_START && targetsReady;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        if (elapsed < p.delay) continue;
+
+        // ─ Physics: keep falling + bouncing ─
+        if (!p.rest) {
+          p.vy += GRAVITY;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vr;
+          if (p.y >= FLOOR_Y) {
+            p.y = FLOOR_Y;
+            if (Math.abs(p.vy) > 0.4 * DPR && p.bounces < 3) {
+              // bouncy reverse with damping
+              p.vy = -p.vy * BOUNCE;
+              p.vx *= FRICTION_X;
+              p.vr *= 0.7;
+              p.bounces++;
+            } else {
               p.vy = 0;
               p.vx = 0;
-            } else {
-              allSettled = false;
+              p.rest = true;
             }
           }
-          drawGrain(p);
         }
-        if (elapsed > FALL_DUR || allSettled) {
-          phase1Done = true;
-          phase2Start = now;
-          // snapshot start positions for smooth morph
-          for (const p of particles) {
+
+        // ─ Morph: each resting particle migrates to logo target ─
+        // Particles that have finished bouncing start morphing; particles still
+        // bouncing continue physics, ensuring overlap of phases.
+        if (morphActive && p.rest && p.morphProgress < 1) {
+          // start time for this particle's morph
+          if (!p.morphStart) p.morphStart = now;
+          p.morphProgress = Math.min(
+            1,
+            (now - p.morphStart) / MORPH_DUR
+          );
+          const m = easeOutCubic(p.morphProgress);
+          // remember settled-floor position as start; smoothly interpolate to target
+          if (!p.morphSx) {
             p.morphSx = p.x;
             p.morphSy = p.y;
           }
-          setStage("morphing");
+          p.x = p.morphSx + (p.tx - p.morphSx) * m;
+          p.y = p.morphSy + (p.ty - p.morphSy) * m;
+          p.rot += 0.04 * (1 - m);
         }
-      } else if (!phase2Done) {
-        // MORPHING phase: ease each particle toward its logo target
-        const tProgress = Math.min(1, (now - phase2Start) / MORPH_DUR);
-        const eased = easeOutCubic(tProgress);
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          // stagger: each particle has slightly different start delay within morph
-          const local = Math.min(1, Math.max(0, (eased - (i % 30) * 0.005) / (1 - 0.15)));
-          p.x = p.morphSx + (p.tx - p.morphSx) * local;
-          p.y = p.morphSy + (p.ty - p.morphSy) * local;
-          p.rot += 0.03 * (1 - local);
-          // shrink slightly as they lock into logo
-          const size = p.size * (1 - local * 0.15);
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rot);
-          // brighten as they form the logo
-          const tint = 1 + local * 0.4;
-          ctx.fillStyle = `rgba(${Math.min(255, 245 * tint)}, ${Math.min(255, 209 * tint)}, ${Math.min(255, 140 * tint)}, 1)`;
-          ctx.strokeStyle = "rgba(154, 117, 48, 0.6)";
-          ctx.lineWidth = 0.4 * DPR;
-          if (p.type.shape === "rice") {
-            ctx.beginPath();
-            ctx.ellipse(0, 0, size * 1.6, size * 0.55, 0, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (p.type.shape === "wheat") {
-            ctx.beginPath();
-            ctx.ellipse(0, 0, size * 1.2, size * 0.8, 0, 0, Math.PI * 2);
-            ctx.fill();
-          } else {
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.restore();
+
+        // ─ Render ─
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        const morphedSize = p.size * (1 - p.morphProgress * 0.18);
+        if (p.morphProgress > 0.05) {
+          // brighter as it locks into the logo
+          const t = 1 + p.morphProgress * 0.5;
+          const fill = `rgb(${Math.min(255, 245 * t)}, ${Math.min(255, 209 * t)}, ${Math.min(255, 140 * t)})`;
+          drawShape(morphedSize, p.type.shape, fill, null);
+        } else {
+          drawShape(morphedSize, p.type.shape, p.type.fill, p.type.stroke);
         }
-        if (tProgress >= 1) {
-          phase2Done = true;
-          phase3Start = now;
-          setStage("revealing");
-        }
-      } else {
-        // LOCKED phase: render particles in place (form the logo silhouette)
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          ctx.save();
-          ctx.translate(p.tx, p.ty);
-          ctx.rotate(p.rot);
-          const size = p.size * 0.85;
-          ctx.fillStyle = "rgba(245, 209, 140, 0.95)";
-          if (p.type.shape === "rice") {
-            ctx.beginPath();
-            ctx.ellipse(0, 0, size * 1.6, size * 0.55, 0, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (p.type.shape === "wheat") {
-            ctx.beginPath();
-            ctx.ellipse(0, 0, size * 1.2, size * 0.8, 0, 0, Math.PI * 2);
-            ctx.fill();
-          } else {
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.restore();
-        }
+        ctx.restore();
       }
 
-      // embers / sparks
+      // ── Sparks ──
       for (let i = 0; i < embers.length; i++) {
         const e = embers[i];
         e.x += e.vx;
@@ -316,6 +270,11 @@ export default function CinematicLoader({ onDone }) {
         ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
+      }
+
+      if (!revealFired && elapsed > REVEAL_AT) {
+        revealFired = true;
+        setStage("revealing");
       }
 
       rafRef.current = requestAnimationFrame(tick);
@@ -336,7 +295,7 @@ export default function CinematicLoader({ onDone }) {
     };
   }, []);
 
-  // Manage stage → done transition
+  // stage transitions
   useEffect(() => {
     if (stage === "revealing") {
       const t = setTimeout(() => {
@@ -364,12 +323,12 @@ export default function CinematicLoader({ onDone }) {
     >
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* Logo overlay (visible during reveal stage on top of grain silhouette) */}
+      {/* Logo overlay - rises into view as grains lock in */}
       <div
         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
         style={{
           opacity: stage === "revealing" ? 1 : 0,
-          transition: "opacity 1.2s ease",
+          transition: "opacity 1.4s ease",
         }}
       >
         <div
@@ -378,7 +337,7 @@ export default function CinematicLoader({ onDone }) {
             width: "120vmin",
             height: "120vmin",
             background:
-              "radial-gradient(circle, rgba(245,209,140,0.22) 0%, rgba(212,161,73,0.08) 30%, transparent 60%)",
+              "radial-gradient(circle, rgba(245,209,140,0.25) 0%, rgba(212,161,73,0.08) 30%, transparent 60%)",
             filter: "blur(20px)",
           }}
         />
@@ -396,7 +355,6 @@ export default function CinematicLoader({ onDone }) {
                 : "none",
           }}
         />
-        {/* Tagline */}
         <div
           className="relative z-10 mt-8 text-center"
           style={{
