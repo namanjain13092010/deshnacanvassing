@@ -2,20 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { LOGO_URL } from "../lib/constants";
 
 /**
- * CinematicLoader v3
+ * CinematicLoader — refined elegance edition
  *
- * Phase A (0-1.4s):  Grains rain down from above. On impact with the floor
- *                    they BOUNCE — high first bounce, smaller second bounce —
- *                    then come to rest in a heap.
+ * Phase A (0–2.2s)  Grains fall slowly. Each grain executes exactly ONE
+ *                   soft bounce on impact, then settles. No floating, no
+ *                   repeated jitter.
+ * Phase B (2.2–4.6s) Settled grains assemble smoothly into the Deshna
+ *                   Canvassing logo silhouette.
+ * Phase C (4.6–7s)  Logo locks in with subtle glow + metallic shine.
  *
- * Phase B (1.4s-4s): While grains are STILL falling & bouncing, the logo
- *                    starts forming. Each settled (or near-settled) grain
- *                    smoothly migrates to its target pixel inside the logo
- *                    silhouette. Result: the logo physically assembles from
- *                    the grain storm.
- *
- * Phase C (4s-6s):   Logo lock-in — golden glow ignites, the real logo image
- *                    fades in over the grain silhouette, tagline appears.
+ * Grain scale ≈ 0.4cm on screen (consistent size, light variance).
+ * Background: deep warm vignette. Dust haze for atmosphere.
  */
 export default function CinematicLoader({ onDone }) {
   const canvasRef = useRef(null);
@@ -35,56 +32,60 @@ export default function CinematicLoader({ onDone }) {
     canvas.style.height = window.innerHeight + "px";
 
     const palette = [
-      { fill: "#f3e3b8", stroke: "#c2a45f", shape: "rice" },
-      { fill: "#d4a149", stroke: "#8a6324", shape: "wheat" },
-      { fill: "#b07a35", stroke: "#6a4818", shape: "pulse" },
-      { fill: "#f5d18c", stroke: "#a07a3c", shape: "rice" },
-      { fill: "#e0c891", stroke: "#9a7530", shape: "pulse" },
+      { fill: "#efdcaf", stroke: "#b58e4a", shape: "rice" },
+      { fill: "#d4a149", stroke: "#7a571f", shape: "wheat" },
+      { fill: "#b07a35", stroke: "#5a3c12", shape: "pulse" },
+      { fill: "#e8c984", stroke: "#9a7530", shape: "rice" },
+      { fill: "#c69a52", stroke: "#7e5a24", shape: "pulse" },
     ];
 
-    const COUNT = window.innerWidth < 640 ? 900 : 1500;
-    const FLOOR_Y = h - 6 * DPR;
-    const GRAVITY = 0.05 * DPR;
-    const BOUNCE = 0.55; // higher = bouncier (0..1)
-    const FRICTION_X = 0.86;
+    const GRAIN_BASE = 6.5 * DPR;
+    const GRAIN_VAR = 1.2 * DPR;
+    const COUNT = window.innerWidth < 640 ? 700 : 1200;
+    const FLOOR_Y = h - 8 * DPR;
+    const GRAVITY = 0.022 * DPR;
+    const BOUNCE = 0.25;
 
     const particles = [];
-
-    // Logo target sampling
     let targetsReady = false;
+
     const sampleTargets = (img) => {
-      const off = document.createElement("canvas");
-      const tw = Math.min(420, Math.round(window.innerWidth * 0.46));
-      const th = Math.round(tw * (img.height / img.width));
-      off.width = tw;
-      off.height = th;
-      const octx = off.getContext("2d");
-      octx.drawImage(img, 0, 0, tw, th);
-      const data = octx.getImageData(0, 0, tw, th).data;
-      const step = 2;
-      const pts = [];
-      for (let y = 0; y < th; y += step) {
-        for (let x = 0; x < tw; x += step) {
-          const a = data[(y * tw + x) * 4 + 3];
-          if (a > 96) {
-            const cx = (window.innerWidth - tw) / 2 + x;
-            const cy = (window.innerHeight - th) / 2 + y - 40;
-            pts.push([cx * DPR, cy * DPR]);
+      try {
+        const off = document.createElement("canvas");
+        const tw = Math.min(420, Math.round(window.innerWidth * 0.46));
+        const th = Math.round(tw * (img.height / img.width));
+        off.width = tw;
+        off.height = th;
+        const octx = off.getContext("2d");
+        octx.drawImage(img, 0, 0, tw, th);
+        const data = octx.getImageData(0, 0, tw, th).data;
+        const step = 2;
+        const pts = [];
+        for (let y = 0; y < th; y += step) {
+          for (let x = 0; x < tw; x += step) {
+            const a = data[(y * tw + x) * 4 + 3];
+            if (a > 96) {
+              const cx = (window.innerWidth - tw) / 2 + x;
+              const cy = (window.innerHeight - th) / 2 + y - 40;
+              pts.push([cx * DPR, cy * DPR]);
+            }
           }
         }
-      }
-      for (let i = pts.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pts[i], pts[j]] = [pts[j], pts[i]];
-      }
-      // Assign each particle a target (cycle through if more particles than pts)
-      if (pts.length > 0) {
-        for (let i = 0; i < particles.length; i++) {
-          const t = pts[i % pts.length];
-          particles[i].tx = t[0];
-          particles[i].ty = t[1];
+        for (let i = pts.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pts[i], pts[j]] = [pts[j], pts[i]];
         }
-        targetsReady = true;
+        if (pts.length > 0) {
+          for (let i = 0; i < particles.length; i++) {
+            const t = pts[i % pts.length];
+            particles[i].tx = t[0];
+            particles[i].ty = t[1];
+          }
+          targetsReady = true;
+        }
+      } catch (err) {
+        // CORS / canvas tainting — fall back to no morph
+        targetsReady = false;
       }
     };
 
@@ -92,110 +93,120 @@ export default function CinematicLoader({ onDone }) {
       const type = palette[Math.floor(Math.random() * palette.length)];
       particles.push({
         x: Math.random() * w,
-        y: -Math.random() * h * 0.8 - 50,
-        vx: (Math.random() - 0.5) * 0.5 * DPR,
-        vy: (1.2 + Math.random() * 1.8) * DPR,  // faster fall = more drama
+        y: -Math.random() * h * 0.7 - 30,
+        vx: (Math.random() - 0.5) * 0.15 * DPR,
+        vy: (0.35 + Math.random() * 0.55) * DPR,
         rot: Math.random() * Math.PI * 2,
-        vr: (Math.random() - 0.5) * 0.15,
-        size: (1.4 + Math.random() * 2.2) * DPR,
+        vr: (Math.random() - 0.5) * 0.04,
+        size: GRAIN_BASE + (Math.random() - 0.5) * GRAIN_VAR,
+        alpha: 0.7 + Math.random() * 0.3,
         type,
-        bounces: 0,
-        rest: false,           // truly motionless
+        bounced: false,
+        rest: false,
         tx: 0,
         ty: 0,
-        morphProgress: 0,      // 0..1, individual morph progress
-        delay: Math.random() * 800,
+        morphProgress: 0,
+        morphStart: 0,
+        morphSx: 0,
+        morphSy: 0,
+        delay: Math.random() * 600,
       });
     }
 
-    // floating sparks
-    const embers = [];
-    for (let i = 0; i < 90; i++) {
-      embers.push({
+    const dust = [];
+    for (let i = 0; i < 50; i++) {
+      dust.push({
         x: Math.random() * w,
         y: Math.random() * h,
-        r: (0.4 + Math.random() * 1.2) * DPR,
-        vx: (Math.random() - 0.5) * 0.2 * DPR,
-        vy: -(0.1 + Math.random() * 0.3) * DPR,
-        a: 0.2 + Math.random() * 0.5,
+        r: (0.8 + Math.random() * 1.6) * DPR,
+        vx: (Math.random() - 0.5) * 0.08 * DPR,
+        vy: -(0.04 + Math.random() * 0.12) * DPR,
+        a: 0.05 + Math.random() * 0.12,
       });
     }
 
-    // Load logo & sample targets
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => sampleTargets(img);
+    img.onerror = () => { targetsReady = false; };
     img.src = LOGO_URL;
 
-    const drawShape = (size, shape, fill, stroke) => {
+    const drawShape = (size, shape, fill) => {
       ctx.fillStyle = fill;
-      if (stroke) {
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = 0.4 * DPR;
-      }
       if (shape === "rice") {
         ctx.beginPath();
-        ctx.ellipse(0, 0, size * 1.6, size * 0.55, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, size * 1.4, size * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
-        if (stroke) ctx.stroke();
       } else if (shape === "wheat") {
         ctx.beginPath();
-        ctx.ellipse(0, 0, size * 1.2, size * 0.8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, size * 1.05, size * 0.72, 0, 0, Math.PI * 2);
         ctx.fill();
-        if (stroke) ctx.stroke();
       } else {
         ctx.beginPath();
-        ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
+        ctx.arc(0, 0, size * 0.78, 0, Math.PI * 2);
         ctx.fill();
-        if (stroke) ctx.stroke();
       }
     };
 
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
     const t0 = performance.now();
-    const MORPH_START = 1400;   // logo formation begins WHILE grains still bouncing
-    const MORPH_DUR = 2400;     // duration each particle takes to morph
-    const REVEAL_AT = 4200;     // logo lock-in moment
+    const MORPH_START = 2200;
+    const MORPH_DUR = 2200;
+    const REVEAL_AT = 4600;
     let revealFired = false;
 
     const tick = (now) => {
       const elapsed = now - t0;
 
-      // ── Background gradient (cinematic warm vignette) ──
-      const g = ctx.createRadialGradient(w / 2, h * 0.55, 0, w / 2, h * 0.6, w * 0.95);
-      g.addColorStop(0, "#1a130b");
-      g.addColorStop(0.4, "#0d0905");
+      // Background warm vignette
+      const g = ctx.createRadialGradient(w / 2, h * 0.55, 0, w / 2, h * 0.55, w * 0.9);
+      g.addColorStop(0, "#181108");
+      g.addColorStop(0.45, "#0b0805");
       g.addColorStop(1, "#000000");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
 
-      // floor shadow (subtle "ground")
-      const fg = ctx.createLinearGradient(0, h * 0.85, 0, h);
+      // floor shadow
+      const fg = ctx.createLinearGradient(0, h * 0.86, 0, h);
       fg.addColorStop(0, "rgba(0,0,0,0)");
-      fg.addColorStop(1, "rgba(0,0,0,0.6)");
+      fg.addColorStop(1, "rgba(0,0,0,0.65)");
       ctx.fillStyle = fg;
-      ctx.fillRect(0, h * 0.85, w, h * 0.15);
+      ctx.fillRect(0, h * 0.86, w, h * 0.14);
 
-      // logo center glow (fades in during morph)
+      // logo center glow during morph
       if (elapsed > MORPH_START) {
         const lt = Math.min(1, (elapsed - MORPH_START) / (REVEAL_AT - MORPH_START));
-        const a = lt * 0.55;
-        const cg = ctx.createRadialGradient(w / 2, h * 0.48, 0, w / 2, h * 0.48, w * 0.45);
+        const a = lt * 0.4;
+        const cg = ctx.createRadialGradient(w / 2, h * 0.48, 0, w / 2, h * 0.48, w * 0.5);
         cg.addColorStop(0, `rgba(245,209,140,${a})`);
-        cg.addColorStop(0.5, `rgba(212,161,73,${a * 0.4})`);
+        cg.addColorStop(0.5, `rgba(212,161,73,${a * 0.45})`);
         cg.addColorStop(1, "rgba(212,161,73,0)");
         ctx.fillStyle = cg;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // ── Particles ──
+      // dust haze (low-opacity soft particles, drifting up)
+      for (let i = 0; i < dust.length; i++) {
+        const d = dust[i];
+        d.x += d.vx;
+        d.y += d.vy;
+        if (d.y < -10) { d.y = h + 10; d.x = Math.random() * w; }
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(245,209,140,${d.a})`;
+        ctx.shadowBlur = 10 * DPR;
+        ctx.shadowColor = "rgba(245,209,140,0.4)";
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // grains
       const morphActive = elapsed > MORPH_START && targetsReady;
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         if (elapsed < p.delay) continue;
 
-        // ─ Physics: keep falling + bouncing ─
         if (!p.rest) {
           p.vy += GRAVITY;
           p.x += p.vx;
@@ -203,73 +214,44 @@ export default function CinematicLoader({ onDone }) {
           p.rot += p.vr;
           if (p.y >= FLOOR_Y) {
             p.y = FLOOR_Y;
-            if (Math.abs(p.vy) > 0.4 * DPR && p.bounces < 3) {
-              // bouncy reverse with damping
+            if (!p.bounced && Math.abs(p.vy) > 0.3 * DPR) {
               p.vy = -p.vy * BOUNCE;
-              p.vx *= FRICTION_X;
-              p.vr *= 0.7;
-              p.bounces++;
+              p.vx *= 0.7;
+              p.vr *= 0.4;
+              p.bounced = true;
             } else {
               p.vy = 0;
               p.vx = 0;
+              p.vr = 0;
               p.rest = true;
             }
           }
         }
 
-        // ─ Morph: each resting particle migrates to logo target ─
-        // Particles that have finished bouncing start morphing; particles still
-        // bouncing continue physics, ensuring overlap of phases.
         if (morphActive && p.rest && p.morphProgress < 1) {
-          // start time for this particle's morph
-          if (!p.morphStart) p.morphStart = now;
-          p.morphProgress = Math.min(
-            1,
-            (now - p.morphStart) / MORPH_DUR
-          );
-          const m = easeOutCubic(p.morphProgress);
-          // remember settled-floor position as start; smoothly interpolate to target
-          if (!p.morphSx) {
+          if (!p.morphStart) {
+            p.morphStart = now;
             p.morphSx = p.x;
             p.morphSy = p.y;
           }
+          p.morphProgress = Math.min(1, (now - p.morphStart) / MORPH_DUR);
+          const m = easeOutCubic(p.morphProgress);
           p.x = p.morphSx + (p.tx - p.morphSx) * m;
           p.y = p.morphSy + (p.ty - p.morphSy) * m;
-          p.rot += 0.04 * (1 - m);
         }
 
-        // ─ Render ─
         ctx.save();
+        ctx.globalAlpha = p.alpha;
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rot);
-        const morphedSize = p.size * (1 - p.morphProgress * 0.18);
+        const size = p.size * (1 - p.morphProgress * 0.1);
+        let fill = p.type.fill;
         if (p.morphProgress > 0.05) {
-          // brighter as it locks into the logo
-          const t = 1 + p.morphProgress * 0.5;
-          const fill = `rgb(${Math.min(255, 245 * t)}, ${Math.min(255, 209 * t)}, ${Math.min(255, 140 * t)})`;
-          drawShape(morphedSize, p.type.shape, fill, null);
-        } else {
-          drawShape(morphedSize, p.type.shape, p.type.fill, p.type.stroke);
+          const t = 1 + p.morphProgress * 0.35;
+          fill = `rgb(${Math.min(255, 239 * t)}, ${Math.min(255, 220 * t)}, ${Math.min(255, 175 * t)})`;
         }
+        drawShape(size, p.type.shape, fill);
         ctx.restore();
-      }
-
-      // ── Sparks ──
-      for (let i = 0; i < embers.length; i++) {
-        const e = embers[i];
-        e.x += e.vx;
-        e.y += e.vy;
-        if (e.y < -10) {
-          e.y = h + 10;
-          e.x = Math.random() * w;
-        }
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(245, 209, 140, ${e.a})`;
-        ctx.shadowBlur = 8 * DPR;
-        ctx.shadowColor = "rgba(245,209,140,0.6)";
-        ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
       }
 
       if (!revealFired && elapsed > REVEAL_AT) {
@@ -295,12 +277,11 @@ export default function CinematicLoader({ onDone }) {
     };
   }, []);
 
-  // stage transitions
   useEffect(() => {
     if (stage === "revealing") {
       const t = setTimeout(() => {
         setHidden(true);
-        setTimeout(() => onDone?.(), 900);
+        setTimeout(() => onDone?.(), 1000);
       }, 2600);
       return () => clearTimeout(t);
     }
@@ -318,12 +299,11 @@ export default function CinematicLoader({ onDone }) {
       style={{
         opacity: hidden ? 0 : 1,
         visibility: hidden ? "hidden" : "visible",
-        transition: "opacity 0.9s ease, visibility 0.9s ease",
+        transition: "opacity 1s ease, visibility 1s ease",
       }}
     >
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* Logo overlay - rises into view as grains lock in */}
       <div
         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
         style={{
@@ -337,7 +317,7 @@ export default function CinematicLoader({ onDone }) {
             width: "120vmin",
             height: "120vmin",
             background:
-              "radial-gradient(circle, rgba(245,209,140,0.25) 0%, rgba(212,161,73,0.08) 30%, transparent 60%)",
+              "radial-gradient(circle, rgba(245,209,140,0.2) 0%, rgba(212,161,73,0.06) 30%, transparent 60%)",
             filter: "blur(20px)",
           }}
         />
@@ -348,10 +328,10 @@ export default function CinematicLoader({ onDone }) {
           style={{
             width: "min(560px, 78vw)",
             filter:
-              "drop-shadow(0 0 40px rgba(245,209,140,0.6)) drop-shadow(0 0 100px rgba(212,161,73,0.35))",
+              "drop-shadow(0 0 40px rgba(245,209,140,0.55)) drop-shadow(0 0 100px rgba(212,161,73,0.3))",
             animation:
               stage === "revealing"
-                ? "logoLockIn 1.6s cubic-bezier(0.2,0.8,0.2,1) forwards"
+                ? "logoLockIn 1.8s cubic-bezier(0.16,1,0.3,1) forwards"
                 : "none",
           }}
         />
@@ -360,7 +340,7 @@ export default function CinematicLoader({ onDone }) {
           style={{
             opacity: stage === "revealing" ? 1 : 0,
             transform: stage === "revealing" ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 1.4s ease 0.9s, transform 1.4s ease 0.9s",
+            transition: "opacity 1.4s ease 1s, transform 1.4s ease 1s",
           }}
         >
           <div
