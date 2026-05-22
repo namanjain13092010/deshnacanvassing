@@ -1,0 +1,60 @@
+# Render Blueprint — deploys backend (web service) + frontend (static site)
+# in one click. After signing in to Render, click "New > Blueprint", point it
+# at your GitHub repo containing this file, and Render will provision both
+# services automatically.
+#
+# You still need to:
+#  1. Create a free MongoDB Atlas cluster (https://www.mongodb.com/atlas)
+#  2. Copy the connection string and paste it into the MONGO_URL env var below
+#     (you can also set it via the Render dashboard after first deploy).
+#  3. After backend deploys, copy its URL (e.g. https://deshna-backend.onrender.com)
+#     and set it as REACT_APP_BACKEND_URL on the frontend service.
+
+services:
+  # ───────────── Backend (FastAPI) ─────────────
+  - type: web
+    name: deshna-backend
+    runtime: python
+    plan: free                        # upgrade to "starter" ($7/mo) for no cold starts
+    region: singapore                 # closest Render region to Karnataka, India
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: MONGO_URL
+        sync: false                    # set this manually in Render dashboard
+      - key: DB_NAME
+        value: deshna_canvassing
+      - key: CORS_ORIGINS
+        sync: false                    # set to your frontend URL after deploy
+                                       # e.g. "https://deshna-canvassing.onrender.com"
+
+  # ───────────── Frontend (React static site) ─────────────
+  - type: web
+    name: deshna-canvassing
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: yarn install --frozen-lockfile && yarn build
+    staticPublishPath: ./build
+    pullRequestPreviewsEnabled: true
+    autoDeploy: true
+    envVars:
+      - key: REACT_APP_BACKEND_URL
+        sync: false                    # set to backend URL after first backend deploy
+                                       # e.g. "https://deshna-backend.onrender.com"
+      - key: NODE_VERSION
+        value: 20.11.1
+    routes:
+      # SPA fallback — every unknown route serves index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable

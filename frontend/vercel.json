@@ -1,0 +1,35 @@
+# Vercel config — frontend only.
+#
+# Use this if you want to host the React frontend on Vercel and the FastAPI
+# backend somewhere else (Render / Railway / Fly.io). Vercel is excellent for
+# static React sites but does NOT run long-lived FastAPI servers, so the
+# backend cannot live on Vercel for this app.
+#
+# Setup:
+#  1. Sign in to https://vercel.com → "New Project" → import your repo
+#  2. Root directory: frontend
+#  3. Framework preset: Create React App
+#  4. Build command: yarn build
+#  5. Output directory: build
+#  6. Environment variables → add REACT_APP_BACKEND_URL with your backend URL
+#     (e.g. https://deshna-backend.onrender.com)
+#  7. Deploy.
+
+{
+  "version": 2,
+  "buildCommand": "yarn build",
+  "outputDirectory": "build",
+  "installCommand": "yarn install --frozen-lockfile",
+  "framework": "create-react-app",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}
